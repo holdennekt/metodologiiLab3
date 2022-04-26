@@ -2,19 +2,17 @@
 FROM golang:1.17-alpine as build
 
 WORKDIR /app
-
-COPY go.mod go.sum ./
+COPY go.mod go.sum /app
 
 RUN go mod download
-
 COPY . .
 
-RUN CGO_ENABLED=0 go build -o build/fizzbuzz
+RUN CGO_ENABLED=0 go build -o /app/build/fizzbuzz
 
 # stage 2
-FROM scratch
+FROM gcr.io/distroless/static-debian11
 
-COPY --from=build /app/build/fizzbuzz ./build/fizzbuzz
-COPY --from=build /app/templates/index.html ./templates/index.html
+COPY --from=build /app/build/fizzbuzz /build/fizzbuzz
+COPY --from=build /app/templates/index.html /templates/index.html
 
-CMD ["./build/fizzbuzz", "serve"]
+CMD ["/build/fizzbuzz", "serve"]
